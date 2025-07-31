@@ -7,6 +7,13 @@ from news_app.models import Article, Publisher
 
 User = get_user_model()  # Get the custom User model
 
+"""
+This is the tests.py file for the news_app Django application.
+It contains unit tests for the RESTful API endpoints, ensuring that the application behaves as expected.
+Tests include authentication, permissions, article management, publisher and journalist retrieval,
+and subscription functionality.
+"""
+
 
 class NewsAPITests(APITestCase):
     """

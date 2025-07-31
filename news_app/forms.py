@@ -8,6 +8,11 @@ User = get_user_model()  # Get the custom user model
 
 
 class ReaderRegistrationForm(UserCreationForm):
+    """Form for registering a new reader user.
+        This form includes username and email fields, and assigns the user
+        to the 'Reader' group upon saving.
+    """
+
     email = forms.EmailField(required=True)
 
     class Meta(UserCreationForm.Meta):
@@ -29,6 +34,10 @@ class ReaderRegistrationForm(UserCreationForm):
 
 
 class JournalistRegistrationForm(UserCreationForm):
+    """Form for registering a new journalist user.
+        This form includes username and email fields, and assigns the user
+        to the 'Journalist' group upon saving.
+    """
     email = forms.EmailField(required=True)
 
     class Meta(UserCreationForm.Meta):
@@ -47,6 +56,10 @@ class JournalistRegistrationForm(UserCreationForm):
 
 
 class EditorRegistrationForm(UserCreationForm):
+    """Form for registering a new editor user.
+        This form includes username and email fields, and assigns the user
+        to the 'Editor' group upon saving.
+    """
     email = forms.EmailField(required=True)
 
     class Meta(UserCreationForm.Meta):
@@ -65,11 +78,18 @@ class EditorRegistrationForm(UserCreationForm):
 
 
 class UserLoginForm(AuthenticationForm):
+    """Form for logging in users.
+        This form uses Django's built-in AuthenticationForm to handle user login.
+    """
     # This form is for logging in existing users
     pass
 
 
 class ArticleForm(forms.ModelForm):
+    """Form for creating or updating articles.
+        This form includes fields for title, content, publisher, and image.
+        The author and is_approved fields are set by the view/admin.
+    """
     class Meta:
         model = Article
         fields = [

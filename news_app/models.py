@@ -3,6 +3,12 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+"""
+This is the models.py file for the news_app Django application.
+It defines the custom User model, Publisher, Article, and Newsletter models.
+The User model includes roles for readers, editors, and journalists,
+and allows readers to subscribe to publishers and journalists.
+"""
 
 
 class User(AbstractUser):
