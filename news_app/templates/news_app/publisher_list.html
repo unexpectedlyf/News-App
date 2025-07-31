@@ -1,0 +1,33 @@
+{% extends 'news_app/base.html' %}
+
+{% block title %}Publishers{% endblock %}
+
+{% block content %}
+<h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">All Publishers</h2>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for publisher in publishers %}
+    <div class="bg-white rounded-lg shadow-md overflow-hidden p-6">
+        {% if publisher.logo %}
+            <img src="{{ publisher.logo.url }}" alt="{{ publisher.name }} Logo" class="w-24 h-24 object-contain mx-auto mb-4 rounded-full">
+        {% else %}
+            <div class="w-24 h-24 bg-gray-200 rounded-full mx-auto mb-4 flex items-center justify-center text-gray-500 text-sm">No Logo</div>
+        {% endif %}
+        <h3 class="text-xl font-semibold text-gray-800 mb-2 text-center">{{ publisher.name }}</h3>
+        <p class="text-gray-700 text-center mb-4">{{ publisher.description|truncatechars:100 }}</p>
+        <div class="text-center">
+            {% if user.is_authenticated and user.is_reader %}
+                {# Use the pre-calculated 'is_subscribed_by_user' attribute #}
+                {% if publisher.is_subscribed_by_user %}
+                    <a href="{% url 'unsubscribe-publisher' pk=publisher.pk %}" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-md text-sm">Unsubscribe</a>
+                {% else %}
+                    <a href="{% url 'subscribe-publisher' pk=publisher.pk %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md text-sm">Subscribe</a>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <p class="col-span-full text-center text-gray-600">No publishers available yet.</p>
+    {% endfor %}
+</div>
+{% endblock %}

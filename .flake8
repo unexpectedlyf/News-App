@@ -1,0 +1,25 @@
+[flake8]
+max-line-length = 88
+
+exclude =
+    EcommerceEnv,
+    .git,
+    __pycache__,
+    migrations,
+    news_env, 
+    env,   
+
+ignore =
+    E203
+    W503
+    W504
+    E722 
+    F401 
+    F841 
+    E265
+    E501 
+    W291 
+    W293 
+    W391 
+    E402 
+    F821 

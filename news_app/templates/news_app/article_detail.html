@@ -1,0 +1,49 @@
+{% extends 'news_app/base.html' %}
+
+{% block title %}{{ article.title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto bg-white p-8 rounded-lg shadow-md mt-10">
+    <h1 class="text-3xl font-bold text-gray-800 mb-4">{{ article.title }}</h1>
+    <p class="text-gray-600 text-sm mb-6">
+        By {{ article.author.username }}
+        {% if article.publisher %}, from {{ article.publisher.name }}{% endif %}
+        on {{ article.published_date|date:"F d, Y H:i" }}
+    </p>
+
+    {% if article.image %}
+        <img src="{{ article.image.url }}" alt="{{ article.title }}" class="w-full h-auto rounded-md mb-6 object-cover">
+    {% else %}
+        <div class="w-full h-64 bg-gray-200 flex items-center justify-center text-gray-500 rounded-md mb-6">No Image Available</div>
+    {% endif %}
+
+    <div class="prose max-w-none text-gray-800 leading-relaxed">
+        <p>{{ article.content|linebreaksbr }}</p>
+    </div>
+
+    <div class="mt-8 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 sm:space-x-4">
+        <a href="{% url 'home' %}" class="text-blue-600 hover:text-blue-800 font-medium">&larr; Back to Articles</a>
+        {% if user.is_authenticated and user.is_reader %}
+            <div class="flex space-x-2">
+                {% if article.publisher %}
+                    {# Use the pre-calculated 'is_subscribed_to_publisher' attribute from context #}
+                    {% if is_subscribed_to_publisher %}
+                        <a href="{% url 'unsubscribe-publisher' pk=article.publisher.pk %}" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-md text-sm">Unsubscribe from {{ article.publisher.name }}</a>
+                    {% else %}
+                        <a href="{% url 'subscribe-publisher' pk=article.publisher.pk %}" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md text-sm">Subscribe to {{ article.publisher.name }}</a>
+                    {% endif %}
+                {% endif %}
+                {# Only show subscribe/unsubscribe to journalist if the the new flag is true #}
+                {% if show_journalist_subscribe_options %}
+                    {# Use the pre-calculated 'is_subscribed_to_journalist' attribute from context #}
+                    {% if is_subscribed_to_journalist %}
+                        <a href="{% url 'unsubscribe-journalist' pk=article.author.pk %}" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-md text-sm">Unsubscribe from {{ article.author.username }}</a>
+                    {% else %}
+                        <a href="{% url 'subscribe-journalist' pk=article.author.pk %}" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md text-sm">Subscribe to {{ article.author.username }}</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

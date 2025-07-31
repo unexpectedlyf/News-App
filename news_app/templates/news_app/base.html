@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}News App{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+    <nav class="bg-gray-800 p-4 text-white">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="{% url 'home' %}" class="text-2xl font-bold rounded-md px-3 py-2 hover:bg-gray-700">NewsApp</a>
+            <div class="space-x-4">
+                <a href="{% url 'home' %}" class="rounded-md px-3 py-2 hover:bg-gray-700">Articles</a>
+                <a href="{% url 'publisher-list' %}" class="rounded-md px-3 py-2 hover:bg-gray-700">Publishers</a>
+                <a href="{% url 'journalist-list' %}" class="rounded-md px-3 py-2 hover:bg-gray-700">Journalists</a>
+                {% if user.is_authenticated %}
+                    {% if user.is_journalist %}
+                        <a href="{% url 'journalist-articles' %}" class="rounded-md px-3 py-2 hover:bg-gray-700">My Articles</a>
+                        <a href="{% url 'article-create' %}" class="rounded-md px-3 py-2 hover:bg-gray-700">Submit Article</a>
+                    {% endif %}
+                    {% if user.is_editor %}
+                        <a href="{% url 'editor-review-list' %}" class="rounded-md px-3 py-2 hover:bg-gray-700">Review Articles</a>
+                    {% endif %}
+                    <span class="px-3 py-2">Hello, {{ user.username }} ({{ user.role|capfirst }})</span>
+                    {# Changed logout to a form for POST request #}
+                    <form action="{% url 'logout' %}" method="post" class="inline-block">
+                        {% csrf_token %}
+                        <button type="submit" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md">Logout</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md">Login</a>
+                    <div class="relative inline-block text-left">
+                        <button type="button" class="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" id="menu-button" aria-expanded="true" aria-haspopup="true">
+                          Register
+                          <!-- Heroicon name: solid/chevron-down -->
+                          <svg class="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                          </svg>
+                        </button>
+                        <div class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none hidden" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1" id="register-menu">
+                          <div class="py-1" role="none">
+                            <a href="{% url 'register-reader' %}" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-0">Reader</a>
+                            <a href="{% url 'register-journalist' %}" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-1">Journalist</a>
+                            <a href="{% url 'register-editor' %}" class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100" role="menuitem" tabindex="-1" id="menu-item-2">Editor</a>
+                          </div>
+                        </div>
+                    </div>
+                    <script>
+                        document.getElementById('menu-button').addEventListener('click', function() {
+                            document.getElementById('register-menu').classList.toggle('hidden');
+                        });
+                        // Close the dropdown if the user clicks outside of it
+                        window.addEventListener('click', function(event) {
+                            if (!event.target.matches('#menu-button')) {
+                                var dropdown = document.getElementById('register-menu');
+                                if (!dropdown.classList.contains('hidden')) {
+                                    dropdown.classList.add('hidden');
+                                }
+                            }
+                        });
+                    </script>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-4 flex-grow">
+        {% if messages %}
+            <div class="mb-4">
+                {% for message in messages %}
+                    <div class="p-3 rounded-md {% if message.tags == 'success' %}bg-green-100 text-green-800{% elif message.tags == 'error' %}bg-red-100 text-red-800{% elif message.tags == 'info' %}bg-blue-100 text-blue-800{% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-800{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}
+        <!-- Content will go here -->
+        {% endblock %}
+    </div>
+
+    <footer class="bg-gray-800 text-white p-4 mt-8">
+        <div class="container mx-auto text-center">
+            &copy; {% now "Y" %} NewsApp. All rights reserved.
+        </div>
+    </footer>
+</body>
+</html>
