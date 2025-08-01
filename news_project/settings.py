@@ -129,6 +129,7 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static")
 ]  # Optional: for project-wide static files
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")  # Directory for collected static files
 
 # Media files (user uploaded content like article images)
 MEDIA_URL = "/media/"
