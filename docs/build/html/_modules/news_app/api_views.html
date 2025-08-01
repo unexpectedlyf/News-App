@@ -1,0 +1,454 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>news_app.api_views &mdash; News-App 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=2709fde1"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            News-App
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">News-App</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">News-App</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">news_app.api_views</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for news_app.api_views</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">rest_framework.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">api_view</span><span class="p">,</span> <span class="n">permission_classes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">rest_framework.permissions</span><span class="w"> </span><span class="kn">import</span> <span class="n">IsAuthenticated</span>  <span class="c1"># For authenticated users</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">rest_framework.response</span><span class="w"> </span><span class="kn">import</span> <span class="n">Response</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">rest_framework</span><span class="w"> </span><span class="kn">import</span> <span class="n">status</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.shortcuts</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_object_or_404</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.db.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Q</span>  <span class="c1"># Used for complex queries</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Article</span><span class="p">,</span> <span class="n">Publisher</span><span class="p">,</span> <span class="n">User</span>  <span class="c1"># Import all needed models</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.serializers</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArticleSerializer</span><span class="p">,</span> <span class="n">PublisherSerializer</span><span class="p">,</span> <span class="n">JournalistSerializer</span>
+
+<span class="c1"># from .utils import tweet_article_approved, send_article_notification_email</span>
+
+
+<span class="c1"># --- Publisher API Views ---</span>
+<div class="viewcode-block" id="publisher_list_api">
+<a class="viewcode-back" href="../../news_app.html#news_app.api_views.publisher_list_api">[docs]</a>
+<span class="nd">@api_view</span><span class="p">([</span><span class="s2">&quot;GET&quot;</span><span class="p">])</span>
+<span class="nd">@permission_classes</span><span class="p">([</span><span class="n">IsAuthenticated</span><span class="p">])</span>  <span class="c1"># Requires authentication to view publishers</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">publisher_list_api</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    API endpoint to list all publishers.</span>
+<span class="sd">    Accessible by any authenticated user.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">publishers</span> <span class="o">=</span> <span class="n">Publisher</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+    <span class="n">serializer</span> <span class="o">=</span> <span class="n">PublisherSerializer</span><span class="p">(</span><span class="n">publishers</span><span class="p">,</span> <span class="n">many</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">serializer</span><span class="o">.</span><span class="n">data</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="publisher_detail_api">
+<a class="viewcode-back" href="../../news_app.html#news_app.api_views.publisher_detail_api">[docs]</a>
+<span class="nd">@api_view</span><span class="p">([</span><span class="s2">&quot;GET&quot;</span><span class="p">])</span>
+<span class="nd">@permission_classes</span><span class="p">(</span>
+    <span class="p">[</span><span class="n">IsAuthenticated</span><span class="p">]</span>
+<span class="p">)</span>  <span class="c1"># Requires authentication to view publisher details</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">publisher_detail_api</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    API endpoint to retrieve details of a single publisher.</span>
+<span class="sd">    Accessible by any authenticated user.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">publisher</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">Publisher</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span>
+    <span class="n">serializer</span> <span class="o">=</span> <span class="n">PublisherSerializer</span><span class="p">(</span><span class="n">publisher</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">serializer</span><span class="o">.</span><span class="n">data</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># --- Journalist API Views ---</span>
+<div class="viewcode-block" id="journalist_list_api">
+<a class="viewcode-back" href="../../news_app.html#news_app.api_views.journalist_list_api">[docs]</a>
+<span class="nd">@api_view</span><span class="p">([</span><span class="s2">&quot;GET&quot;</span><span class="p">])</span>
+<span class="nd">@permission_classes</span><span class="p">([</span><span class="n">IsAuthenticated</span><span class="p">])</span>  <span class="c1"># Requires authentication to view journalists</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">journalist_list_api</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    API endpoint to list all journalists (users with role=&#39;journalist&#39;).</span>
+<span class="sd">    Accessible by any authenticated user.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">journalists</span> <span class="o">=</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">role</span><span class="o">=</span><span class="s2">&quot;journalist&quot;</span><span class="p">)</span>
+    <span class="n">serializer</span> <span class="o">=</span> <span class="n">JournalistSerializer</span><span class="p">(</span><span class="n">journalists</span><span class="p">,</span> <span class="n">many</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">serializer</span><span class="o">.</span><span class="n">data</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="journalist_detail_api">
+<a class="viewcode-back" href="../../news_app.html#news_app.api_views.journalist_detail_api">[docs]</a>
+<span class="nd">@api_view</span><span class="p">([</span><span class="s2">&quot;GET&quot;</span><span class="p">])</span>
+<span class="nd">@permission_classes</span><span class="p">(</span>
+    <span class="p">[</span><span class="n">IsAuthenticated</span><span class="p">]</span>
+<span class="p">)</span>  <span class="c1"># Requires authentication to view journalist details</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">journalist_detail_api</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    API endpoint to retrieve details of a single journalist.</span>
+<span class="sd">    Accessible by any authenticated user.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">journalist</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="s2">&quot;journalist&quot;</span><span class="p">)</span>
+    <span class="n">serializer</span> <span class="o">=</span> <span class="n">JournalistSerializer</span><span class="p">(</span><span class="n">journalist</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">serializer</span><span class="o">.</span><span class="n">data</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># --- Article API Views ---</span>
+
+
+<div class="viewcode-block" id="article_list_create_api">
+<a class="viewcode-back" href="../../news_app.html#news_app.api_views.article_list_create_api">[docs]</a>
+<span class="nd">@api_view</span><span class="p">([</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;POST&quot;</span><span class="p">])</span>
+<span class="nd">@permission_classes</span><span class="p">(</span>
+    <span class="p">[</span><span class="n">IsAuthenticated</span><span class="p">]</span>
+<span class="p">)</span>  <span class="c1"># Authenticated users can view, Journalists can create</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">article_list_create_api</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    API endpoint to list approved articles (for all authenticated users)</span>
+<span class="sd">    or create a new article (for authenticated journalists).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;GET&quot;</span><span class="p">:</span>
+        <span class="c1"># API clients (readers, etc.) can only retrieve APPROVED articles</span>
+        <span class="n">articles</span> <span class="o">=</span> <span class="n">Article</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">is_approved</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s2">&quot;-published_date&quot;</span><span class="p">)</span>
+        <span class="n">serializer</span> <span class="o">=</span> <span class="n">ArticleSerializer</span><span class="p">(</span><span class="n">articles</span><span class="p">,</span> <span class="n">many</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">serializer</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;POST&quot;</span><span class="p">:</span>
+        <span class="c1"># Only users with the &#39;journalist&#39; role can create articles via API</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_journalist</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">Response</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;detail&quot;</span><span class="p">:</span> <span class="s2">&quot;Permission denied. Only journalists can create articles via API.&quot;</span>
+                <span class="p">},</span>
+                <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_403_FORBIDDEN</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Pass request.user to the serializer context if you need it for custom validation</span>
+        <span class="c1"># The author will be set by the view based on the authenticated user.</span>
+        <span class="n">serializer</span> <span class="o">=</span> <span class="n">ArticleSerializer</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;request&quot;</span><span class="p">:</span> <span class="n">request</span><span class="p">})</span>
+        <span class="k">if</span> <span class="n">serializer</span><span class="o">.</span><span class="n">is_valid</span><span class="p">():</span>
+            <span class="c1"># Set the author of the article to the currently authenticated journalist</span>
+            <span class="c1"># New articles are not approved by default; an editor must approve them.</span>
+            <span class="n">article</span> <span class="o">=</span> <span class="n">serializer</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">author</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">,</span> <span class="n">is_approved</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="c1"># Email notifications and tweeting will be handled by Django signals</span>
+            <span class="c1"># when the article&#39;s `is_approved` status changes to True by an editor.</span>
+
+            <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">serializer</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_201_CREATED</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">serializer</span><span class="o">.</span><span class="n">errors</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_400_BAD_REQUEST</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="article_detail_api">
+<a class="viewcode-back" href="../../news_app.html#news_app.api_views.article_detail_api">[docs]</a>
+<span class="nd">@api_view</span><span class="p">([</span><span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="s2">&quot;PUT&quot;</span><span class="p">,</span> <span class="s2">&quot;DELETE&quot;</span><span class="p">])</span>
+<span class="nd">@permission_classes</span><span class="p">(</span>
+    <span class="p">[</span><span class="n">IsAuthenticated</span><span class="p">]</span>
+<span class="p">)</span>  <span class="c1"># Authenticated users can view. Editors/Journalists can manage.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">article_detail_api</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    API endpoint to retrieve, update, or delete a specific article.</span>
+<span class="sd">    GET: Accessible if approved, or if user is the author/editor.</span>
+<span class="sd">    PUT/DELETE: Only by the author or an editor.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">article</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">Article</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;GET&quot;</span><span class="p">:</span>
+        <span class="c1"># Allow viewing if:</span>
+        <span class="c1"># 1. The article is approved (for any authenticated user)</span>
+        <span class="c1"># 2. The current user is the author of the article</span>
+        <span class="c1"># 3. The current user is an editor</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">article</span><span class="o">.</span><span class="n">is_approved</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">user</span> <span class="o">==</span> <span class="n">article</span><span class="o">.</span><span class="n">author</span> <span class="ow">or</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_editor</span><span class="p">()</span>
+        <span class="p">):</span>
+            <span class="k">return</span> <span class="n">Response</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;detail&quot;</span><span class="p">:</span> <span class="s2">&quot;Permission denied. Article not approved or you are not authorized to view unapproved articles.&quot;</span>
+                <span class="p">},</span>
+                <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_403_FORBIDDEN</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">serializer</span> <span class="o">=</span> <span class="n">ArticleSerializer</span><span class="p">(</span><span class="n">article</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">serializer</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;PUT&quot;</span><span class="p">:</span>
+        <span class="c1"># Only the author or an editor can update an article</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span> <span class="o">==</span> <span class="n">article</span><span class="o">.</span><span class="n">author</span> <span class="ow">or</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_editor</span><span class="p">()):</span>
+            <span class="k">return</span> <span class="n">Response</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;detail&quot;</span><span class="p">:</span> <span class="s2">&quot;Permission denied. You are not the author or an editor of this article.&quot;</span>
+                <span class="p">},</span>
+                <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_403_FORBIDDEN</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Prevent non-editors from changing &#39;is_approved&#39; status via API</span>
+        <span class="k">if</span> <span class="s2">&quot;is_approved&quot;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">data</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_editor</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">Response</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;detail&quot;</span><span class="p">:</span> <span class="s2">&quot;Only editors can change the approval status of an article via API.&quot;</span>
+                <span class="p">},</span>
+                <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_403_FORBIDDEN</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="n">serializer</span> <span class="o">=</span> <span class="n">ArticleSerializer</span><span class="p">(</span>
+            <span class="n">article</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">partial</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;request&quot;</span><span class="p">:</span> <span class="n">request</span><span class="p">}</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">serializer</span><span class="o">.</span><span class="n">is_valid</span><span class="p">():</span>
+            <span class="c1"># Ensure the author cannot be changed via API update</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="s2">&quot;author&quot;</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">data</span>
+                <span class="ow">and</span> <span class="nb">int</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;author&quot;</span><span class="p">])</span> <span class="o">!=</span> <span class="n">article</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">id</span>
+            <span class="p">):</span>
+                <span class="k">return</span> <span class="n">Response</span><span class="p">(</span>
+                    <span class="p">{</span><span class="s2">&quot;detail&quot;</span><span class="p">:</span> <span class="s2">&quot;Author cannot be changed via API update.&quot;</span><span class="p">},</span>
+                    <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_400_BAD_REQUEST</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="n">serializer</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">serializer</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">serializer</span><span class="o">.</span><span class="n">errors</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_400_BAD_REQUEST</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;DELETE&quot;</span><span class="p">:</span>
+        <span class="c1"># Only the author or an editor can delete an article</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">user</span> <span class="o">==</span> <span class="n">article</span><span class="o">.</span><span class="n">author</span> <span class="ow">or</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_editor</span><span class="p">()):</span>
+            <span class="k">return</span> <span class="n">Response</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;detail&quot;</span><span class="p">:</span> <span class="s2">&quot;Permission denied. You are not the author or an editor of this article.&quot;</span>
+                <span class="p">},</span>
+                <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_403_FORBIDDEN</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">article</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_204_NO_CONTENT</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="publisher_articles_api">
+<a class="viewcode-back" href="../../news_app.html#news_app.api_views.publisher_articles_api">[docs]</a>
+<span class="nd">@api_view</span><span class="p">([</span><span class="s2">&quot;GET&quot;</span><span class="p">])</span>
+<span class="nd">@permission_classes</span><span class="p">([</span><span class="n">IsAuthenticated</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">publisher_articles_api</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">publisher_id</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    API endpoint to retrieve approved articles for a specific publisher.</span>
+<span class="sd">    Accessible by any authenticated user.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">publisher</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">Publisher</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">publisher_id</span><span class="p">)</span>
+    <span class="c1"># Only return approved articles for API clients</span>
+    <span class="n">articles</span> <span class="o">=</span> <span class="n">Article</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">publisher</span><span class="o">=</span><span class="n">publisher</span><span class="p">,</span> <span class="n">is_approved</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span>
+        <span class="s2">&quot;-published_date&quot;</span>
+    <span class="p">)</span>
+    <span class="n">serializer</span> <span class="o">=</span> <span class="n">ArticleSerializer</span><span class="p">(</span><span class="n">articles</span><span class="p">,</span> <span class="n">many</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">serializer</span><span class="o">.</span><span class="n">data</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="journalist_articles_api">
+<a class="viewcode-back" href="../../news_app.html#news_app.api_views.journalist_articles_api">[docs]</a>
+<span class="nd">@api_view</span><span class="p">([</span><span class="s2">&quot;GET&quot;</span><span class="p">])</span>
+<span class="nd">@permission_classes</span><span class="p">([</span><span class="n">IsAuthenticated</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">journalist_articles_api</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">journalist_id</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    API endpoint to retrieve approved articles for a specific journalist.</span>
+<span class="sd">    Accessible by any authenticated user.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">journalist</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">journalist_id</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="s2">&quot;journalist&quot;</span><span class="p">)</span>
+    <span class="c1"># Only return approved articles for API clients</span>
+    <span class="n">articles</span> <span class="o">=</span> <span class="n">Article</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">author</span><span class="o">=</span><span class="n">journalist</span><span class="p">,</span> <span class="n">is_approved</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span>
+        <span class="s2">&quot;-published_date&quot;</span>
+    <span class="p">)</span>
+    <span class="n">serializer</span> <span class="o">=</span> <span class="n">ArticleSerializer</span><span class="p">(</span><span class="n">articles</span><span class="p">,</span> <span class="n">many</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Response</span><span class="p">(</span><span class="n">serializer</span><span class="o">.</span><span class="n">data</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># API endpoint for a client to subscribe/unsubscribe (optional, but good for API)</span>
+<div class="viewcode-block" id="subscribe_api">
+<a class="viewcode-back" href="../../news_app.html#news_app.api_views.subscribe_api">[docs]</a>
+<span class="nd">@api_view</span><span class="p">([</span><span class="s2">&quot;POST&quot;</span><span class="p">])</span>
+<span class="nd">@permission_classes</span><span class="p">([</span><span class="n">IsAuthenticated</span><span class="p">])</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">subscribe_api</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    API endpoint for a reader to subscribe/unsubscribe to a publisher or journalist.</span>
+<span class="sd">    Requires &#39;type&#39; (&#39;publisher&#39; or &#39;journalist&#39;) and &#39;id&#39; of the target,</span>
+<span class="sd">    and &#39;action&#39; (&#39;subscribe&#39; or &#39;unsubscribe&#39;) in the request body.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Only users with the &#39;reader&#39; role can manage subscriptions via API</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_reader</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;detail&quot;</span><span class="p">:</span> <span class="s2">&quot;Permission denied. Only readers can manage subscriptions via API.&quot;</span>
+            <span class="p">},</span>
+            <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_403_FORBIDDEN</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="n">subscription_type</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span>
+    <span class="n">target_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span>
+    <span class="n">action</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;action&quot;</span><span class="p">,</span> <span class="s2">&quot;subscribe&quot;</span><span class="p">)</span>  <span class="c1"># Default action is &#39;subscribe&#39;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">subscription_type</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">target_id</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;detail&quot;</span><span class="p">:</span> <span class="s1">&#39;Missing &quot;type&quot; (publisher/journalist) or &quot;id&quot; in request body.&#39;</span>
+            <span class="p">},</span>
+            <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_400_BAD_REQUEST</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">target_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">target_id</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">(</span>
+            <span class="p">{</span><span class="s2">&quot;detail&quot;</span><span class="p">:</span> <span class="s2">&quot;ID must be an integer.&quot;</span><span class="p">},</span> <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_400_BAD_REQUEST</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">subscription_type</span> <span class="o">==</span> <span class="s2">&quot;publisher&quot;</span><span class="p">:</span>
+        <span class="n">target_obj</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">Publisher</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">target_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;subscribe&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">subscribed_publishers</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">target_id</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">Response</span><span class="p">(</span>
+                    <span class="p">{</span><span class="s2">&quot;detail&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Already subscribed to </span><span class="si">{</span><span class="n">target_obj</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">},</span>
+                    <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_409_CONFLICT</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">subscribed_publishers</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">target_obj</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">Response</span><span class="p">(</span>
+                <span class="p">{</span><span class="s2">&quot;detail&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Successfully subscribed to </span><span class="si">{</span><span class="n">target_obj</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">},</span>
+                <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_200_OK</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;unsubscribe&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">subscribed_publishers</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">target_id</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">Response</span><span class="p">(</span>
+                    <span class="p">{</span><span class="s2">&quot;detail&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Not subscribed to </span><span class="si">{</span><span class="n">target_obj</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">},</span>
+                    <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">subscribed_publishers</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">target_obj</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">Response</span><span class="p">(</span>
+                <span class="p">{</span><span class="s2">&quot;detail&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Successfully unsubscribed from </span><span class="si">{</span><span class="n">target_obj</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">},</span>
+                <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_200_OK</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Response</span><span class="p">(</span>
+                <span class="p">{</span><span class="s2">&quot;detail&quot;</span><span class="p">:</span> <span class="s1">&#39;Invalid action. Must be &quot;subscribe&quot; or &quot;unsubscribe&quot;.&#39;</span><span class="p">},</span>
+                <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_400_BAD_REQUEST</span><span class="p">,</span>
+            <span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">subscription_type</span> <span class="o">==</span> <span class="s2">&quot;journalist&quot;</span><span class="p">:</span>
+        <span class="n">target_obj</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span>
+            <span class="n">User</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">target_id</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="s2">&quot;journalist&quot;</span>
+        <span class="p">)</span>  <span class="c1"># Ensure it&#39;s a journalist user</span>
+        <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;subscribe&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">subscribed_journalists</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">target_id</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">Response</span><span class="p">(</span>
+                    <span class="p">{</span><span class="s2">&quot;detail&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Already subscribed to </span><span class="si">{</span><span class="n">target_obj</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">},</span>
+                    <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_409_CONFLICT</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">subscribed_journalists</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">target_obj</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">Response</span><span class="p">(</span>
+                <span class="p">{</span><span class="s2">&quot;detail&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Successfully subscribed to </span><span class="si">{</span><span class="n">target_obj</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">},</span>
+                <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_200_OK</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="s2">&quot;unsubscribe&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">subscribed_journalists</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">target_id</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">Response</span><span class="p">(</span>
+                    <span class="p">{</span><span class="s2">&quot;detail&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Not subscribed to </span><span class="si">{</span><span class="n">target_obj</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">},</span>
+                    <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_404_NOT_FOUND</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">subscribed_journalists</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">target_obj</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">Response</span><span class="p">(</span>
+                <span class="p">{</span><span class="s2">&quot;detail&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Successfully unsubscribed from </span><span class="si">{</span><span class="n">target_obj</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">},</span>
+                <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_200_OK</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Response</span><span class="p">(</span>
+                <span class="p">{</span><span class="s2">&quot;detail&quot;</span><span class="p">:</span> <span class="s1">&#39;Invalid action. Must be &quot;subscribe&quot; or &quot;unsubscribe&quot;.&#39;</span><span class="p">},</span>
+                <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_400_BAD_REQUEST</span><span class="p">,</span>
+            <span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;detail&quot;</span><span class="p">:</span> <span class="s1">&#39;Invalid subscription type. Must be &quot;publisher&quot; or &quot;journalist&quot;.&#39;</span>
+            <span class="p">},</span>
+            <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="o">.</span><span class="n">HTTP_400_BAD_REQUEST</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kgutlane Ralijeje.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

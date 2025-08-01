@@ -1,0 +1,798 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>news_app.views &mdash; News-App 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=2709fde1"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            News-App
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">News-App</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">News-App</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">news_app.views</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for news_app.views</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django.shortcuts</span><span class="w"> </span><span class="kn">import</span> <span class="n">render</span><span class="p">,</span> <span class="n">redirect</span><span class="p">,</span> <span class="n">get_object_or_404</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.views.generic</span><span class="w"> </span><span class="kn">import</span> <span class="n">CreateView</span><span class="p">,</span> <span class="n">ListView</span><span class="p">,</span> <span class="n">UpdateView</span><span class="p">,</span> <span class="n">DeleteView</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.views</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">LoginView</span><span class="p">,</span>
+    <span class="n">LogoutView</span><span class="p">,</span>
+    <span class="n">PasswordResetDoneView</span><span class="p">,</span>
+    <span class="n">PasswordResetCompleteView</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.mixins</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoginRequiredMixin</span><span class="p">,</span> <span class="n">UserPassesTestMixin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.decorators</span><span class="w"> </span><span class="kn">import</span> <span class="n">login_required</span><span class="p">,</span> <span class="n">user_passes_test</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.urls</span><span class="w"> </span><span class="kn">import</span> <span class="n">reverse_lazy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib</span><span class="w"> </span><span class="kn">import</span> <span class="n">messages</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_user_model</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.core.mail</span><span class="w"> </span><span class="kn">import</span> <span class="n">send_mail</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.template.loader</span><span class="w"> </span><span class="kn">import</span> <span class="n">render_to_string</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.html</span><span class="w"> </span><span class="kn">import</span> <span class="n">strip_tags</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.conf</span><span class="w"> </span><span class="kn">import</span> <span class="n">settings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.contrib.auth.tokens</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_token_generator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.http</span><span class="w"> </span><span class="kn">import</span> <span class="n">urlsafe_base64_encode</span><span class="p">,</span> <span class="n">urlsafe_base64_decode</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.encoding</span><span class="w"> </span><span class="kn">import</span> <span class="n">force_bytes</span><span class="p">,</span> <span class="n">force_str</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.http</span><span class="w"> </span><span class="kn">import</span> <span class="n">HttpResponse</span><span class="p">,</span> <span class="n">Http404</span>  <span class="c1"># Import Http404 for ArticleDetailView</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">User</span><span class="p">,</span> <span class="n">Publisher</span><span class="p">,</span> <span class="n">Article</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.forms</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ReaderRegistrationForm</span><span class="p">,</span>
+    <span class="n">JournalistRegistrationForm</span><span class="p">,</span>
+    <span class="n">EditorRegistrationForm</span><span class="p">,</span>
+    <span class="n">UserLoginForm</span><span class="p">,</span>
+    <span class="n">ArticleForm</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">tweet_article_approved</span><span class="p">,</span>
+    <span class="n">send_article_notification_email</span><span class="p">,</span>
+<span class="p">)</span>  <span class="c1"># Import Twitter and Email helpers</span>
+
+<span class="c1"># Get the custom user model here</span>
+<span class="n">CustomUser</span> <span class="o">=</span> <span class="n">get_user_model</span><span class="p">()</span>
+
+
+<span class="c1"># --- Mixins for Role-Based Access Control ---</span>
+<div class="viewcode-block" id="IsReaderMixin">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.IsReaderMixin">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">IsReaderMixin</span><span class="p">(</span><span class="n">UserPassesTestMixin</span><span class="p">):</span>
+<div class="viewcode-block" id="IsReaderMixin.test_func">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.IsReaderMixin.test_func">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_func</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_authenticated</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_reader</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="IsReaderMixin.handle_no_permission">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.IsReaderMixin.handle_no_permission">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">handle_no_permission</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="s2">&quot;You must be a Reader to access this page.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s2">&quot;home&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="IsEditorMixin">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.IsEditorMixin">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">IsEditorMixin</span><span class="p">(</span><span class="n">UserPassesTestMixin</span><span class="p">):</span>
+<div class="viewcode-block" id="IsEditorMixin.test_func">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.IsEditorMixin.test_func">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_func</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_authenticated</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_editor</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="IsEditorMixin.handle_no_permission">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.IsEditorMixin.handle_no_permission">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">handle_no_permission</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="s2">&quot;You must be an Editor to access this page.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s2">&quot;home&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="IsJournalistMixin">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.IsJournalistMixin">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">IsJournalistMixin</span><span class="p">(</span><span class="n">UserPassesTestMixin</span><span class="p">):</span>
+<div class="viewcode-block" id="IsJournalistMixin.test_func">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.IsJournalistMixin.test_func">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_func</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_authenticated</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_journalist</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="IsJournalistMixin.handle_no_permission">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.IsJournalistMixin.handle_no_permission">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">handle_no_permission</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="s2">&quot;You must be a Journalist to access this page.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s2">&quot;home&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="c1"># --- Authentication Views ---</span>
+<div class="viewcode-block" id="UserLoginView">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.UserLoginView">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">UserLoginView</span><span class="p">(</span><span class="n">LoginView</span><span class="p">):</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s2">&quot;news_app/login.html&quot;</span>
+    <span class="n">authentication_form</span> <span class="o">=</span> <span class="n">UserLoginForm</span>
+
+<div class="viewcode-block" id="UserLoginView.get_success_url">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.UserLoginView.get_success_url">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_success_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Welcome, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s2">!&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">reverse_lazy</span><span class="p">(</span><span class="s2">&quot;home&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="UserLogoutView">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.UserLogoutView">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">UserLogoutView</span><span class="p">(</span><span class="n">LogoutView</span><span class="p">):</span>
+    <span class="n">next_page</span> <span class="o">=</span> <span class="n">reverse_lazy</span><span class="p">(</span><span class="s2">&quot;login&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="UserLogoutView.dispatch">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.UserLogoutView.dispatch">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dispatch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s2">&quot;You have been logged out.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">dispatch</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ReaderRegistrationView">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.ReaderRegistrationView">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReaderRegistrationView</span><span class="p">(</span><span class="n">CreateView</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">User</span>
+    <span class="n">form_class</span> <span class="o">=</span> <span class="n">ReaderRegistrationForm</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s2">&quot;news_app/registration_form.html&quot;</span>
+    <span class="n">success_url</span> <span class="o">=</span> <span class="n">reverse_lazy</span><span class="p">(</span><span class="s2">&quot;login&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ReaderRegistrationView.get_context_data">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.ReaderRegistrationView.get_context_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">context</span><span class="p">[</span><span class="s2">&quot;user_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Reader&quot;</span>
+        <span class="k">return</span> <span class="n">context</span></div>
+
+
+<div class="viewcode-block" id="ReaderRegistrationView.form_valid">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.ReaderRegistrationView.form_valid">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">form_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">success</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="s2">&quot;Reader account created successfully. Please log in.&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">form_valid</span><span class="p">(</span><span class="n">form</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="JournalistRegistrationView">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.JournalistRegistrationView">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">JournalistRegistrationView</span><span class="p">(</span><span class="n">CreateView</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">User</span>
+    <span class="n">form_class</span> <span class="o">=</span> <span class="n">JournalistRegistrationForm</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s2">&quot;news_app/registration_form.html&quot;</span>
+    <span class="n">success_url</span> <span class="o">=</span> <span class="n">reverse_lazy</span><span class="p">(</span><span class="s2">&quot;login&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="JournalistRegistrationView.get_context_data">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.JournalistRegistrationView.get_context_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">context</span><span class="p">[</span><span class="s2">&quot;user_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Journalist&quot;</span>
+        <span class="k">return</span> <span class="n">context</span></div>
+
+
+<div class="viewcode-block" id="JournalistRegistrationView.form_valid">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.JournalistRegistrationView.form_valid">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">form_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">success</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="s2">&quot;Journalist account created successfully. Please log in.&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">form_valid</span><span class="p">(</span><span class="n">form</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="EditorRegistrationView">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.EditorRegistrationView">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EditorRegistrationView</span><span class="p">(</span><span class="n">CreateView</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">User</span>
+    <span class="n">form_class</span> <span class="o">=</span> <span class="n">EditorRegistrationForm</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s2">&quot;news_app/registration_form.html&quot;</span>
+    <span class="n">success_url</span> <span class="o">=</span> <span class="n">reverse_lazy</span><span class="p">(</span><span class="s2">&quot;login&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="EditorRegistrationView.get_context_data">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.EditorRegistrationView.get_context_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">context</span><span class="p">[</span><span class="s2">&quot;user_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Editor&quot;</span>
+        <span class="k">return</span> <span class="n">context</span></div>
+
+
+<div class="viewcode-block" id="EditorRegistrationView.form_valid">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.EditorRegistrationView.form_valid">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">form_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">success</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="s2">&quot;Editor account created successfully. Please log in.&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">form_valid</span><span class="p">(</span><span class="n">form</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="c1"># --- Password Reset Views ---</span>
+<div class="viewcode-block" id="password_reset_request">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.password_reset_request">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">password_reset_request</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;POST&quot;</span><span class="p">:</span>
+        <span class="n">email_address</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;email&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">user</span> <span class="o">=</span> <span class="n">CustomUser</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="n">email_address</span><span class="p">)</span>
+            <span class="c1"># Generate token and UID for the password reset link</span>
+            <span class="n">uid</span> <span class="o">=</span> <span class="n">urlsafe_base64_encode</span><span class="p">(</span><span class="n">force_bytes</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">pk</span><span class="p">))</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="n">default_token_generator</span><span class="o">.</span><span class="n">make_token</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+            <span class="n">reset_url</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">build_absolute_uri</span><span class="p">(</span>
+                <span class="n">reverse_lazy</span><span class="p">(</span>
+                    <span class="s2">&quot;password-reset-confirm&quot;</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;uidb64&quot;</span><span class="p">:</span> <span class="n">user</span><span class="o">.</span><span class="n">pk</span><span class="p">,</span> <span class="s2">&quot;token&quot;</span><span class="p">:</span> <span class="n">token</span><span class="p">}</span>
+                <span class="p">)</span>  <span class="c1"># Using user.pk directly as uidb64</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Send email</span>
+            <span class="n">subject</span> <span class="o">=</span> <span class="s2">&quot;Password Reset Request for News App&quot;</span>
+            <span class="n">html_message</span> <span class="o">=</span> <span class="n">render_to_string</span><span class="p">(</span>
+                <span class="s2">&quot;news_app/password_reset_email.html&quot;</span><span class="p">,</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="n">user</span><span class="p">,</span>
+                    <span class="s2">&quot;reset_url&quot;</span><span class="p">:</span> <span class="n">reset_url</span><span class="p">,</span>
+                <span class="p">},</span>
+            <span class="p">)</span>
+            <span class="n">plain_message</span> <span class="o">=</span> <span class="n">strip_tags</span><span class="p">(</span><span class="n">html_message</span><span class="p">)</span>
+            <span class="n">send_mail</span><span class="p">(</span>
+                <span class="n">subject</span><span class="p">,</span>
+                <span class="n">plain_message</span><span class="p">,</span>
+                <span class="n">settings</span><span class="o">.</span><span class="n">DEFAULT_FROM_EMAIL</span><span class="p">,</span>
+                <span class="p">[</span><span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">],</span>
+                <span class="n">html_message</span><span class="o">=</span><span class="n">html_message</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">messages</span><span class="o">.</span><span class="n">success</span><span class="p">(</span>
+                <span class="n">request</span><span class="p">,</span>
+                <span class="s2">&quot;Password reset email sent successfully. Please check your inbox.&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s2">&quot;password-reset-done&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">CustomUser</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">:</span>
+            <span class="n">messages</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s2">&quot;No user found with that email address.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">render</span><span class="p">(</span>
+                <span class="n">request</span><span class="p">,</span>
+                <span class="s2">&quot;news_app/password_reset_request.html&quot;</span><span class="p">,</span>
+                <span class="p">{</span><span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="n">email_address</span><span class="p">},</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s2">&quot;news_app/password_reset_request.html&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CustomPasswordResetDoneView">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.CustomPasswordResetDoneView">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CustomPasswordResetDoneView</span><span class="p">(</span><span class="n">PasswordResetDoneView</span><span class="p">):</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s2">&quot;news_app/password_reset_done.html&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="password_reset_confirm">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.password_reset_confirm">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">password_reset_confirm</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">uidb64</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Decode the user ID</span>
+        <span class="c1"># user_id = force_str(urlsafe_base64_decode(uidb64)) # This is the standard way with uidb64</span>
+
+        <span class="n">user_id</span> <span class="o">=</span> <span class="n">uidb64</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="n">CustomUser</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">user_id</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="ne">OverflowError</span><span class="p">,</span> <span class="n">CustomUser</span><span class="o">.</span><span class="n">DoesNotExist</span><span class="p">):</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">user</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">default_token_generator</span><span class="o">.</span><span class="n">check_token</span><span class="p">(</span><span class="n">user</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;POST&quot;</span><span class="p">:</span>
+            <span class="n">new_password</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;new_password&quot;</span><span class="p">)</span>
+            <span class="n">confirm_password</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;confirm_password&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">new_password</span> <span class="ow">and</span> <span class="n">new_password</span> <span class="o">==</span> <span class="n">confirm_password</span><span class="p">:</span>
+                <span class="n">user</span><span class="o">.</span><span class="n">set_password</span><span class="p">(</span><span class="n">new_password</span><span class="p">)</span>
+                <span class="n">user</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+                <span class="n">messages</span><span class="o">.</span><span class="n">success</span><span class="p">(</span>
+                    <span class="n">request</span><span class="p">,</span>
+                    <span class="s2">&quot;Your password has been reset successfully. You can now log in.&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s2">&quot;password-reset-complete&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">messages</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s2">&quot;Passwords do not match or are empty.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">render</span><span class="p">(</span>
+            <span class="n">request</span><span class="p">,</span>
+            <span class="s2">&quot;news_app/password_reset_confirm.html&quot;</span><span class="p">,</span>
+            <span class="p">{</span><span class="s2">&quot;uidb64&quot;</span><span class="p">:</span> <span class="n">uidb64</span><span class="p">,</span> <span class="s2">&quot;token&quot;</span><span class="p">:</span> <span class="n">token</span><span class="p">},</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s2">&quot;The password reset link is invalid or has expired.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s2">&quot;password-reset-request&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CustomPasswordResetCompleteView">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.CustomPasswordResetCompleteView">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CustomPasswordResetCompleteView</span><span class="p">(</span><span class="n">PasswordResetCompleteView</span><span class="p">):</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s2">&quot;news_app/password_reset_complete.html&quot;</span></div>
+
+
+
+<span class="c1"># --- Article Views (Reader/General Access) ---</span>
+<div class="viewcode-block" id="ArticleListView">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.ArticleListView">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ArticleListView</span><span class="p">(</span><span class="n">ListView</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Article</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s2">&quot;news_app/article_list.html&quot;</span>
+    <span class="n">context_object_name</span> <span class="o">=</span> <span class="s2">&quot;articles&quot;</span>
+    <span class="n">paginate_by</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c1"># Optional: for pagination</span>
+
+<div class="viewcode-block" id="ArticleListView.get_queryset">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.ArticleListView.get_queryset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_queryset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Only show approved articles to general readers</span>
+        <span class="k">return</span> <span class="n">Article</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">is_approved</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s2">&quot;-published_date&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ArticleDetailView">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.ArticleDetailView">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ArticleDetailView</span><span class="p">(</span><span class="n">ListView</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Article</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s2">&quot;news_app/article_detail.html&quot;</span>
+    <span class="n">context_object_name</span> <span class="o">=</span> <span class="s2">&quot;article&quot;</span>
+
+<div class="viewcode-block" id="ArticleDetailView.get_queryset">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.ArticleDetailView.get_queryset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_queryset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Get the article by PK</span>
+        <span class="n">pk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;pk&quot;</span><span class="p">]</span>
+        <span class="n">article</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">Article</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span>
+
+        <span class="c1"># Allow access if:</span>
+        <span class="c1"># 1. The article is approved (for everyone)</span>
+        <span class="c1"># 2. The current user is the author (journalist) of the article</span>
+        <span class="c1"># 3. The current user is an editor</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">article</span><span class="o">.</span><span class="n">is_approved</span>
+            <span class="ow">or</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_authenticated</span>
+                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span> <span class="o">==</span> <span class="n">article</span><span class="o">.</span><span class="n">author</span>
+            <span class="p">)</span>
+            <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_authenticated</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_editor</span><span class="p">())</span>
+        <span class="p">):</span>
+            <span class="k">return</span> <span class="n">Article</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                <span class="n">pk</span><span class="o">=</span><span class="n">pk</span>
+            <span class="p">)</span>  <span class="c1"># Return a queryset containing the article</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># If none of the above conditions are met, raise 404</span>
+            <span class="k">raise</span> <span class="n">Http404</span><span class="p">(</span><span class="s2">&quot;Article not found or not approved for your access level.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ArticleDetailView.get_context_data">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.ArticleDetailView.get_context_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">article</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span>
+            <span class="s2">&quot;article&quot;</span>
+        <span class="p">]</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>  <span class="c1"># Get the single article object from the queryset</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">article</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">Http404</span><span class="p">(</span><span class="s2">&quot;Article not found or not approved.&quot;</span><span class="p">)</span>
+
+        <span class="n">context</span><span class="p">[</span><span class="s2">&quot;article&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">article</span>  <span class="c1"># Set the single article object in context</span>
+
+        <span class="c1"># Pre-calculate subscription status for the current user if they are a reader</span>
+        <span class="n">context</span><span class="p">[</span><span class="s2">&quot;is_subscribed_to_publisher&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">context</span><span class="p">[</span><span class="s2">&quot;is_subscribed_to_journalist&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">context</span><span class="p">[</span><span class="s2">&quot;show_journalist_subscribe_options&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># New flag</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_authenticated</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_reader</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">article</span><span class="o">.</span><span class="n">publisher</span><span class="p">:</span>
+                <span class="n">context</span><span class="p">[</span><span class="s2">&quot;is_subscribed_to_publisher&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">subscribed_publishers</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                        <span class="n">pk</span><span class="o">=</span><span class="n">article</span><span class="o">.</span><span class="n">publisher</span><span class="o">.</span><span class="n">pk</span>
+                    <span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+                <span class="p">)</span>
+
+            <span class="c1"># Check if the user is a reader and not the author of the article</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_journalist</span><span class="p">()</span>
+                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">pk</span> <span class="o">==</span> <span class="n">article</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">pk</span>
+            <span class="p">):</span>
+                <span class="n">context</span><span class="p">[</span><span class="s2">&quot;is_subscribed_to_journalist&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">subscribed_journalists</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                        <span class="n">pk</span><span class="o">=</span><span class="n">article</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">pk</span>
+                    <span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+                <span class="p">)</span>
+                <span class="n">context</span><span class="p">[</span><span class="s2">&quot;show_journalist_subscribe_options&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># Set the new flag</span>
+
+        <span class="k">return</span> <span class="n">context</span></div>
+</div>
+
+
+
+<span class="c1"># --- Journalist Views ---</span>
+<div class="viewcode-block" id="JournalistArticleCreateView">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.JournalistArticleCreateView">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">JournalistArticleCreateView</span><span class="p">(</span><span class="n">LoginRequiredMixin</span><span class="p">,</span> <span class="n">IsJournalistMixin</span><span class="p">,</span> <span class="n">CreateView</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Article</span>
+    <span class="n">form_class</span> <span class="o">=</span> <span class="n">ArticleForm</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s2">&quot;news_app/article_form.html&quot;</span>
+    <span class="n">success_url</span> <span class="o">=</span> <span class="n">reverse_lazy</span><span class="p">(</span><span class="s2">&quot;journalist-articles&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="JournalistArticleCreateView.get_form_kwargs">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.JournalistArticleCreateView.get_form_kwargs">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_form_kwargs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_form_kwargs</span><span class="p">()</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;user&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span>  <span class="c1"># Pass the current user to the form</span>
+        <span class="k">return</span> <span class="n">kwargs</span></div>
+
+
+<div class="viewcode-block" id="JournalistArticleCreateView.form_valid">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.JournalistArticleCreateView.form_valid">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">form_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">author</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span>
+        <span class="p">)</span>  <span class="c1"># Set the author to the logged-in journalist</span>
+        <span class="c1"># Newly created articles are not approved by default, an editor must approve them</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">is_approved</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">success</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span>
+            <span class="s2">&quot;Article submitted for review. An editor will approve it shortly.&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">form_valid</span><span class="p">(</span><span class="n">form</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="JournalistArticleListView">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.JournalistArticleListView">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">JournalistArticleListView</span><span class="p">(</span><span class="n">LoginRequiredMixin</span><span class="p">,</span> <span class="n">IsJournalistMixin</span><span class="p">,</span> <span class="n">ListView</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Article</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s2">&quot;news_app/journalist_article_list.html&quot;</span>
+    <span class="n">context_object_name</span> <span class="o">=</span> <span class="s2">&quot;my_articles&quot;</span>
+    <span class="n">paginate_by</span> <span class="o">=</span> <span class="mi">10</span>
+
+<div class="viewcode-block" id="JournalistArticleListView.get_queryset">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.JournalistArticleListView.get_queryset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_queryset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Show only articles authored by the current journalist</span>
+        <span class="k">return</span> <span class="n">Article</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">author</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span>
+            <span class="s2">&quot;-published_date&quot;</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="JournalistArticleUpdateView">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.JournalistArticleUpdateView">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">JournalistArticleUpdateView</span><span class="p">(</span><span class="n">LoginRequiredMixin</span><span class="p">,</span> <span class="n">IsJournalistMixin</span><span class="p">,</span> <span class="n">UpdateView</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Article</span>
+    <span class="n">form_class</span> <span class="o">=</span> <span class="n">ArticleForm</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s2">&quot;news_app/article_form.html&quot;</span>
+    <span class="n">success_url</span> <span class="o">=</span> <span class="n">reverse_lazy</span><span class="p">(</span><span class="s2">&quot;journalist-articles&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="JournalistArticleUpdateView.get_queryset">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.JournalistArticleUpdateView.get_queryset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_queryset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Ensure a journalist can only update their own articles</span>
+        <span class="k">return</span> <span class="n">Article</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">author</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="JournalistArticleUpdateView.form_valid">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.JournalistArticleUpdateView.form_valid">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">form_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="s2">&quot;Article updated successfully.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">form_valid</span><span class="p">(</span><span class="n">form</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="JournalistArticleDeleteView">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.JournalistArticleDeleteView">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">JournalistArticleDeleteView</span><span class="p">(</span><span class="n">LoginRequiredMixin</span><span class="p">,</span> <span class="n">IsJournalistMixin</span><span class="p">,</span> <span class="n">DeleteView</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Article</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s2">&quot;news_app/article_confirm_delete.html&quot;</span>
+    <span class="n">success_url</span> <span class="o">=</span> <span class="n">reverse_lazy</span><span class="p">(</span><span class="s2">&quot;journalist-articles&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="JournalistArticleDeleteView.get_queryset">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.JournalistArticleDeleteView.get_queryset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_queryset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Ensure a journalist can only delete their own articles</span>
+        <span class="k">return</span> <span class="n">Article</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">author</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="JournalistArticleDeleteView.form_valid">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.JournalistArticleDeleteView.form_valid">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">form_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="s2">&quot;Article deleted successfully.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">form_valid</span><span class="p">(</span><span class="n">form</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="c1"># --- Editor Views ---</span>
+<div class="viewcode-block" id="EditorArticleReviewList">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.EditorArticleReviewList">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EditorArticleReviewList</span><span class="p">(</span><span class="n">LoginRequiredMixin</span><span class="p">,</span> <span class="n">IsEditorMixin</span><span class="p">,</span> <span class="n">ListView</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Article</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s2">&quot;news_app/editor_review_list.html&quot;</span>
+    <span class="n">context_object_name</span> <span class="o">=</span> <span class="s2">&quot;articles_for_review&quot;</span>
+    <span class="n">paginate_by</span> <span class="o">=</span> <span class="mi">10</span>
+
+<div class="viewcode-block" id="EditorArticleReviewList.get_queryset">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.EditorArticleReviewList.get_queryset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_queryset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Editors see all articles, including unapproved ones</span>
+        <span class="k">return</span> <span class="n">Article</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">all</span><span class="p">()</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="s2">&quot;-published_date&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="approve_article">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.approve_article">[docs]</a>
+<span class="nd">@login_required</span>
+<span class="nd">@user_passes_test</span><span class="p">(</span><span class="k">lambda</span> <span class="n">u</span><span class="p">:</span> <span class="n">u</span><span class="o">.</span><span class="n">is_editor</span><span class="p">())</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">approve_article</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">):</span>
+    <span class="n">article</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">Article</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;POST&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="n">article</span><span class="o">.</span><span class="n">is_approved</span>
+        <span class="p">):</span>  <span class="c1"># Only contunue if the article is not already approved</span>
+            <span class="c1"># Set a temporary flag to indicate this approval came from the view</span>
+            <span class="n">article</span><span class="o">.</span><span class="n">_just_approved</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">article</span><span class="o">.</span><span class="n">is_approved</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">article</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>  <span class="c1"># This save will trigger the post_save signal</span>
+            <span class="n">messages</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Article &quot;</span><span class="si">{</span><span class="n">article</span><span class="o">.</span><span class="n">title</span><span class="si">}</span><span class="s1">&quot; approved.&#39;</span><span class="p">)</span>
+
+            <span class="c1"># The tweet_article_approved and email sending logic will now be handled by the signal.</span>
+            <span class="c1"># Removed direct calls to tweet_article_approved and email loops from here.</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">messages</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Article &quot;</span><span class="si">{</span><span class="n">article</span><span class="o">.</span><span class="n">title</span><span class="si">}</span><span class="s1">&quot; was already approved.&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s2">&quot;editor-review-list&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s2">&quot;news_app/approve_confirm.html&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;article&quot;</span><span class="p">:</span> <span class="n">article</span><span class="p">})</span></div>
+
+
+
+<span class="c1"># Editor can also update/delete any article</span>
+<div class="viewcode-block" id="EditorArticleUpdateView">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.EditorArticleUpdateView">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EditorArticleUpdateView</span><span class="p">(</span><span class="n">LoginRequiredMixin</span><span class="p">,</span> <span class="n">IsEditorMixin</span><span class="p">,</span> <span class="n">UpdateView</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Article</span>
+    <span class="n">form_class</span> <span class="o">=</span> <span class="n">ArticleForm</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s2">&quot;news_app/article_form.html&quot;</span>
+    <span class="n">success_url</span> <span class="o">=</span> <span class="n">reverse_lazy</span><span class="p">(</span><span class="s2">&quot;editor-review-list&quot;</span><span class="p">)</span>  <span class="c1"># Redirect back to review list</span>
+
+<div class="viewcode-block" id="EditorArticleUpdateView.form_valid">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.EditorArticleUpdateView.form_valid">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">form_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="s2">&quot;Article updated successfully by editor.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">form_valid</span><span class="p">(</span><span class="n">form</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="EditorArticleDeleteView">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.EditorArticleDeleteView">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EditorArticleDeleteView</span><span class="p">(</span><span class="n">LoginRequiredMixin</span><span class="p">,</span> <span class="n">IsEditorMixin</span><span class="p">,</span> <span class="n">DeleteView</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Article</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s2">&quot;news_app/article_confirm_delete.html&quot;</span>
+    <span class="n">success_url</span> <span class="o">=</span> <span class="n">reverse_lazy</span><span class="p">(</span><span class="s2">&quot;editor-review-list&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="EditorArticleDeleteView.form_valid">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.EditorArticleDeleteView.form_valid">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">form_valid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="s2">&quot;Article deleted successfully by editor.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">form_valid</span><span class="p">(</span><span class="n">form</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="c1"># --- Subscription Management Views (for Readers) ---</span>
+<div class="viewcode-block" id="subscribe_publisher">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.subscribe_publisher">[docs]</a>
+<span class="nd">@login_required</span>
+<span class="nd">@user_passes_test</span><span class="p">(</span><span class="k">lambda</span> <span class="n">u</span><span class="p">:</span> <span class="n">u</span><span class="o">.</span><span class="n">is_reader</span><span class="p">())</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">subscribe_publisher</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">):</span>
+    <span class="n">publisher</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">Publisher</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">subscribed_publishers</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;You are already subscribed to </span><span class="si">{</span><span class="n">publisher</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">subscribed_publishers</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">publisher</span><span class="p">)</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Successfully subscribed to </span><span class="si">{</span><span class="n">publisher</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span>
+        <span class="s2">&quot;publisher-list&quot;</span>
+    <span class="p">)</span>  <span class="c1"># Redirect back to publisher list or a profile page</span></div>
+
+
+
+<div class="viewcode-block" id="unsubscribe_publisher">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.unsubscribe_publisher">[docs]</a>
+<span class="nd">@login_required</span>
+<span class="nd">@user_passes_test</span><span class="p">(</span><span class="k">lambda</span> <span class="n">u</span><span class="p">:</span> <span class="n">u</span><span class="o">.</span><span class="n">is_reader</span><span class="p">())</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">unsubscribe_publisher</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">):</span>
+    <span class="n">publisher</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">Publisher</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">subscribed_publishers</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">subscribed_publishers</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">publisher</span><span class="p">)</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Successfully unsubscribed from </span><span class="si">{</span><span class="n">publisher</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;You were not subscribed to </span><span class="si">{</span><span class="n">publisher</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s2">&quot;publisher-list&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="subscribe_journalist">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.subscribe_journalist">[docs]</a>
+<span class="nd">@login_required</span>
+<span class="nd">@user_passes_test</span><span class="p">(</span><span class="k">lambda</span> <span class="n">u</span><span class="p">:</span> <span class="n">u</span><span class="o">.</span><span class="n">is_reader</span><span class="p">())</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">subscribe_journalist</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">):</span>
+    <span class="n">journalist</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="s2">&quot;journalist&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">subscribed_journalists</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;You are already subscribed to </span><span class="si">{</span><span class="n">journalist</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">subscribed_journalists</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">journalist</span><span class="p">)</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Successfully subscribed to </span><span class="si">{</span><span class="n">journalist</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s2">&quot;journalist-list&quot;</span><span class="p">)</span>  <span class="c1"># Redirect to a list of journalists</span></div>
+
+
+
+<div class="viewcode-block" id="unsubscribe_journalist">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.unsubscribe_journalist">[docs]</a>
+<span class="nd">@login_required</span>
+<span class="nd">@user_passes_test</span><span class="p">(</span><span class="k">lambda</span> <span class="n">u</span><span class="p">:</span> <span class="n">u</span><span class="o">.</span><span class="n">is_reader</span><span class="p">())</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">unsubscribe_journalist</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">pk</span><span class="p">):</span>
+    <span class="n">journalist</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">User</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="s2">&quot;journalist&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">subscribed_journalists</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">pk</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">subscribed_journalists</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">journalist</span><span class="p">)</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">success</span><span class="p">(</span>
+            <span class="n">request</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Successfully unsubscribed from </span><span class="si">{</span><span class="n">journalist</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s2">.&quot;</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">messages</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;You were not subscribed to </span><span class="si">{</span><span class="n">journalist</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s2">&quot;journalist-list&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="PublisherListView">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.PublisherListView">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PublisherListView</span><span class="p">(</span><span class="n">ListView</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Publisher</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s2">&quot;news_app/publisher_list.html&quot;</span>
+    <span class="n">context_object_name</span> <span class="o">=</span> <span class="s2">&quot;publishers&quot;</span>
+
+<div class="viewcode-block" id="PublisherListView.get_context_data">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.PublisherListView.get_context_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_authenticated</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_reader</span><span class="p">():</span>
+            <span class="c1"># Annotate each publisher with whether the current user is subscribed</span>
+            <span class="k">for</span> <span class="n">publisher</span> <span class="ow">in</span> <span class="n">context</span><span class="p">[</span><span class="s2">&quot;publishers&quot;</span><span class="p">]:</span>
+                <span class="n">publisher</span><span class="o">.</span><span class="n">is_subscribed_by_user</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">subscribed_publishers</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                        <span class="n">pk</span><span class="o">=</span><span class="n">publisher</span><span class="o">.</span><span class="n">pk</span>
+                    <span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+                <span class="p">)</span>
+        <span class="k">return</span> <span class="n">context</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="JournalistListView">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.JournalistListView">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">JournalistListView</span><span class="p">(</span><span class="n">ListView</span><span class="p">):</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">User</span>
+    <span class="n">template_name</span> <span class="o">=</span> <span class="s2">&quot;news_app/journalist_list.html&quot;</span>
+    <span class="n">context_object_name</span> <span class="o">=</span> <span class="s2">&quot;journalists&quot;</span>
+
+<div class="viewcode-block" id="JournalistListView.get_queryset">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.JournalistListView.get_queryset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_queryset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">User</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">role</span><span class="o">=</span><span class="s2">&quot;journalist&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="JournalistListView.get_context_data">
+<a class="viewcode-back" href="../../news_app.html#news_app.views.JournalistListView.get_context_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_context_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_context_data</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_authenticated</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_reader</span><span class="p">():</span>
+            <span class="c1"># Annotate each journalist with whether the current user is subscribed</span>
+            <span class="k">for</span> <span class="n">journalist</span> <span class="ow">in</span> <span class="n">context</span><span class="p">[</span><span class="s2">&quot;journalists&quot;</span><span class="p">]:</span>
+                <span class="n">journalist</span><span class="o">.</span><span class="n">is_subscribed_by_user</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">subscribed_journalists</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+                        <span class="n">pk</span><span class="o">=</span><span class="n">journalist</span><span class="o">.</span><span class="n">pk</span>
+                    <span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+                <span class="p">)</span>
+        <span class="k">return</span> <span class="n">context</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kgutlane Ralijeje.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

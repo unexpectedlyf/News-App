@@ -1,0 +1,165 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>news_app.signals &mdash; News-App 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=2709fde1"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            News-App
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">News-App</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">News-App</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">news_app.signals</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for news_app.signals</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django.db.models.signals</span><span class="w"> </span><span class="kn">import</span> <span class="n">post_save</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.dispatch</span><span class="w"> </span><span class="kn">import</span> <span class="n">receiver</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Article</span><span class="p">,</span> <span class="n">User</span>  <span class="c1"># Import User model</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">send_article_notification_email</span>  <span class="c1"># Import the email utility function</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.conf</span><span class="w"> </span><span class="kn">import</span> <span class="n">settings</span>  <span class="c1"># Import settings to check for Twitter keys</span>
+
+
+<span class="c1"># This signal receiver will be triggered every time an Article object is saved.</span>
+<div class="viewcode-block" id="article_approved_notification">
+<a class="viewcode-back" href="../../news_app.html#news_app.signals.article_approved_notification">[docs]</a>
+<span class="nd">@receiver</span><span class="p">(</span><span class="n">post_save</span><span class="p">,</span> <span class="n">sender</span><span class="o">=</span><span class="n">Article</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">article_approved_notification</span><span class="p">(</span><span class="n">sender</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">created</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sends email notifications to subscribers when an article is approved.</span>
+<span class="sd">    Also triggers a tweet if the article is newly approved and Twitter keys are configured.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">created</span><span class="p">:</span>
+        <span class="k">return</span>
+
+   
+    <span class="k">if</span> <span class="n">instance</span><span class="o">.</span><span class="n">is_approved</span><span class="p">:</span>
+        
+
+        <span class="c1"># --- Send emails to subscribers ---</span>
+        <span class="c1"># Subscribers to the publisher (if article has a publisher)</span>
+        <span class="k">if</span> <span class="n">instance</span><span class="o">.</span><span class="n">publisher</span><span class="p">:</span>
+            <span class="c1"># Get all users subscribed to this publisher</span>
+            <span class="n">publisher_subscribers</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">publisher</span><span class="o">.</span><span class="n">subscribers</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">publisher_subscribers</span><span class="p">:</span>
+                <span class="n">send_article_notification_email</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">,</span> <span class="n">instance</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Sent email to publisher subscriber: </span><span class="si">{</span><span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="si">}</span><span class="s2"> for article &#39;</span><span class="si">{</span><span class="n">instance</span><span class="o">.</span><span class="n">title</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+                <span class="p">)</span>
+
+        <span class="c1"># Subscribers to the author (journalist)</span>
+        <span class="c1"># The &#39;individual_subscribers&#39; related_name is defined on the User model</span>
+        <span class="c1"># This correctly fetches users who have subscribed to this journalist.</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">instance</span><span class="o">.</span><span class="n">author</span> <span class="ow">and</span> <span class="n">instance</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">is_journalist</span><span class="p">()</span>
+        <span class="p">):</span>  <span class="c1"># Ensure author exists and is a journalist</span>
+            <span class="n">journalist_subscribers</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">individual_subscribers</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">journalist_subscribers</span><span class="p">:</span>
+                <span class="n">send_article_notification_email</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">,</span> <span class="n">instance</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Sent email to journalist subscriber: </span><span class="si">{</span><span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="si">}</span><span class="s2"> for article &#39;</span><span class="si">{</span><span class="n">instance</span><span class="o">.</span><span class="n">title</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+                <span class="p">)</span>
+
+        <span class="c1"># --- Trigger tweet  ---</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">tweet_article_approved</span>  <span class="c1"># Re-import to be explicit in signal</span>
+
+        <span class="c1"># Only tweet if the article was newly approved in this save operation</span>
+        <span class="c1"># (The `approve_article` view ensures this logic runs only once)</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="nb">hasattr</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="s2">&quot;_previous_is_approved&quot;</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="n">instance</span><span class="o">.</span><span class="n">_previous_is_approved</span>
+            <span class="ow">and</span> <span class="n">instance</span><span class="o">.</span><span class="n">is_approved</span>
+        <span class="p">):</span>
+            <span class="n">tweet_article_approved</span><span class="p">(</span><span class="n">instance</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">instance</span><span class="p">,</span> <span class="s2">&quot;_previous_is_approved&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">instance</span><span class="o">.</span><span class="n">is_approved</span><span class="p">:</span>
+        
+            <span class="k">pass</span>  <span class="c1"># We will rely on the view for tweeting for now, or refine this signal.</span></div>
+
+            
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Kgutlane Ralijeje.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
