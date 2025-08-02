@@ -80,9 +80,9 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
         "NAME": "news_db",
-        "USER": "kgutlane",
+        "USER": "root",
         "PASSWORD": "Degasio43*1",
-        "HOST": "localhost",
+        "HOST": "news-db",
         "PORT": "3306",
         "OPTIONS": {
             "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
