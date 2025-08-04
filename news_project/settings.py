@@ -14,7 +14,7 @@ SECRET_KEY = "django-insecure-@e^$0j8*!%8v+x!*w7j7&0m-!g+y@s26s1^n21)j#^!t!m7"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']  # Allow all hosts for development; restrict in production
 
 
 # Application definition
@@ -76,20 +76,17 @@ WSGI_APPLICATION = "news_project.wsgi.application"
 #}
 
 # Database configuration for MariaDB
+
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": "news_db",
-        "USER": "root",
-        "PASSWORD": "Degasio43*1",
-        "HOST": "news-db",
-        "PORT": "3306",
-        "OPTIONS": {
-            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv('DB_NAME'),        
+        'USER': os.getenv('DB_USER'),        
+        'PASSWORD': os.getenv('DB_PASSWORD'),  
+        'HOST': os.getenv('DB_HOST'),        
+        'PORT': 3306,
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators

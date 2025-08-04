@@ -3,8 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 from .models import User, Publisher, Article
 
 admin.site.register(Publisher)
-admin.site.register(User) 
-
+admin.site.register(User)
 
 # Custom UserAdmin to display and manage the 'role' field and subscriptions
 class CustomUserAdmin(UserAdmin):

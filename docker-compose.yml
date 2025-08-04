@@ -1,0 +1,40 @@
+#This is a Docker Compose file for a Django application with a MariaDB database.
+# It sets up the necessary services, volumes, and environment variables for development.
+
+services:
+  news-db:
+    image: mariadb:10.6.22-jammy
+    container_name: news-app-news-db-1
+    volumes:
+      - news-db-data:/var/lib/mysql
+    ports:
+      # Map container port 3306 to host port 3307 to avoid conflict with the local installation.
+      - "3307:3306"
+    environment:
+      # These environment variables are critical for MariaDB to start.
+      # We are creating a new user and database for security.
+      - MARIADB_ROOT_PASSWORD=Degasio43*1
+      - MARIADB_DATABASE=news_db
+      - MARIADB_USER=django_user
+      - MARIADB_PASSWORD=Degasio43*1 
+    restart: always
+
+  web:
+    build: .
+    container_name: news-app-web-1
+    command: sh -c "/usr/src/app/entrypoint.sh"
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - news-db
+    environment:
+      # These environment variables will be passed to the Django application.
+      - DB_HOST=news-db
+      - DB_NAME=news_db
+      - DB_USER=django_user
+      - DB_PASSWORD=Degasio43*1
+
+volumes:
+  news-db-data:

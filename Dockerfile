@@ -1,34 +1,38 @@
- FROM python:3.11-slim
+# Start with a base Python image
+FROM python:3.11-slim
 
- # Set working directory
- WORKDIR /app
+#Working directory inside the container
+WORKDIR /usr/src/app
 
- # Set environment variables
- ENV PYTHONDONTWRITEBYTECODE 1
- ENV PYTHONUNBUFFERED 1
+#system dependencies needed for the database connector and netcat
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+    default-libmysqlclient-dev \
+    gcc \
+    pkg-config \
+    libmariadb-dev-compat \
+    libmariadb-dev \
+    netcat-openbsd \
+    && rm -rf /var/lib/apt/lists/*
 
- # Install system dependencies
- RUN apt-get update && apt-get install -y \
-     gcc \
-     python3-dev \
-     libpq-dev \
-     && rm -rf /var/lib/apt/lists/*
+# Here we copy the requirements file to the working directory
+# and install the Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
- # Install Python dependencies
- COPY requirements.txt .
- RUN pip install --no-cache-dir -r requirements.txt
+# Copy the custom entrypoint script and make it executable
+COPY ./entrypoint.sh /usr/src/app/entrypoint.sh
+RUN chmod +x /usr/src/app/entrypoint.sh
 
- # Copy project files
- COPY . .
+# Copy the rest of the application code
+COPY . .
 
- # Collect static files (optional, for Django)
- RUN python manage.py collectstatic --noinput
+# Create the static files directory to resolve the warning
+RUN mkdir -p static
 
- # Run migrations
- RUN python manage.py migrate
+# Sets the default command to run the entrypoint script
+# The `docker-compose.yml` file will override this
+CMD ["sh", "-c", "/usr/src/app/entrypoint.sh"]
 
- # Expose port 8000
- EXPOSE 8000
-
- # Run the application
- CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Expose port 8000 for the Django development server
+EXPOSE 8000 
