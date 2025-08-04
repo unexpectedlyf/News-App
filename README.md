@@ -91,10 +91,4 @@ Once the containers are running, the application will be available at http://loc
 For Reviewer Access (Temporary)
 This file should never be committed to a public repository. It is a temporary file to provide a reviewer with access to the necessary credentials.
 
-secrets.txt
 
-MARIADB_ROOT_PASSWORD=your_secure_root_password_here
-MARIADB_PASSWORD=your_secure_django_password_here
-DB_PASSWORD=your_secure_django_password_here
-
-Please remember to delete this file once the review is complete.
