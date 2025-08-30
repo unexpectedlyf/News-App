@@ -1,8 +1,9 @@
 Django News Application 📰
-🚀 Introduction
+
+# 🚀 Introduction
 This repository hosts a Django web application designed for fetching and displaying news articles. It provides two flexible deployment methods: running directly via a local Python virtual environment or, as recommended, utilizing Docker Compose for a portable and isolated development setup, including database management.
 
-🛠️ Technologies Used:
+# 🛠️ Technologies Used:
 - Backend Framework: Django 5.x
   
 - Front End: HTML, Tailwind CSS and Javascript
@@ -15,7 +16,7 @@ This repository hosts a Django web application designed for fetching and display
   
 - Python Package Management: pip
 
-⚙️ Setup Instructions:
+# ⚙️ Setup Instructions:
 Follow these steps to get the News Application up and running on your local machine:
 
 Prerequisites
