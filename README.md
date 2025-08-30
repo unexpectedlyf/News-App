@@ -1,4 +1,4 @@
-Django News Application 📰
+# Django News Application 📰
 
 # 🚀 Introduction
 This repository hosts a Django web application designed for fetching and displaying news articles. It provides two flexible deployment methods: running directly via a local Python virtual environment or, as recommended, utilizing Docker Compose for a portable and isolated development setup, including database management.
@@ -19,7 +19,7 @@ This repository hosts a Django web application designed for fetching and display
 # ⚙️ Setup Instructions:
 Follow these steps to get the News Application up and running on your local machine:
 
-Prerequisites
+# Prerequisites
 To run this application, ensure you have the following installed on your system:
 
 Python 3.11 or higher
@@ -33,7 +33,7 @@ Git
 Method 1: Running with a Python Virtual Environment (Local venv)
 This method runs the application directly on your local machine using a Python virtual environment.
 
-Clone the repository:
+# Clone the repository:
 
 git clone https://github.com/unexpectedlyf/News-App.git
 cd News-App
@@ -79,7 +79,7 @@ Clone the repository:
 git clone https://github.com/unexpectedlyf/News-App.git
 cd News-App
 
-Configure Environment Variables:
+# Configure Environment Variables:
 Open the docker-compose.yml file and replace the placeholder passwords for MARIADB_ROOT_PASSWORD, MARIADB_PASSWORD, and DB_PASSWORD with strong, secure passwords of your choice. It is critical that MARIADB_PASSWORD and DB_PASSWORD are identical.
 
 # docker-compose.yml (excerpt)
@@ -104,21 +104,21 @@ From the News-App directory, run the following command. The --build flag will bu
 
 docker compose up -d --build --force-recreate
 
-Access the application:
+# Access the application:
 Once the containers are running, the application will be available at http://localhost:8000.
 
-📚 Documentation (Sphinx)
+# 📚 Documentation (Sphinx)
 This project includes Sphinx documentation located in the docs/ directory. You can build and view the documentation locally after setting up the project.
 
-To build the HTML documentation:
+# To build the HTML documentation:
 
 cd docs
 make html
 
 Then open _build/html/index.html in your browser.
 
-📞 Contact
+# 📞 Contact
 For any questions, feedback, or collaborations, please feel free to reach out to [Your Name/unexpectedlyf's email or GitHub profile].
 
-📄 License
+# 📄 License
 This project is open-source and available under the MIT License. See the LICENSE file in the repository for full details.
